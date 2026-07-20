@@ -1,5 +1,5 @@
-import User from "../models/user"
-import Role from '../models/role'
+import User from "../models/user.js"
+import Role from '../models/role.js'
 
 exports.registerUser = (req, res) => {
     const { username, password, role } = req.body;
