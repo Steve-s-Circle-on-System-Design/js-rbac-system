@@ -32,17 +32,19 @@ Ensure you have Node.js and pnpm installed on your machine.
 Clone the repository and install dependencies using pnpm:
 
 git clone [https://github.com/your-username/your-repo-name.git](https://github.com/Steve-s-Circle-on-System-Design/js-rbac-system)
+
 cd js-rbac-system
+
 pnpm install
 
 Environment Setup
 Create a .env file in the root directory and configure your environment variables (Database URI, JWT secrets, Cloudinary credentials, and Mail service configurations).
 
-Running the App
+# Running the App
 
-# Development mode
+## Development mode
 pnpm run dev
 
-# Production build
+## Production build
 pnpm run build
 pnpm run start
