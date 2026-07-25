@@ -1,9 +1,10 @@
 import User from "../models/user.js"
 import Role from '../models/role.js'
 
-exports.registerUser = (req, res) => {
+exports.registerUser = async (req, res) => {
     const { username, password, role } = req.body;
-    const user = new User({ username, role });
+    const hashedPassword = await bcrypt.hash(password, 8); 
+    const user = new User({ username, password: hashedPassword, role });
 
     User.register(user, password, (err) => {
         if (err) {
@@ -25,7 +26,13 @@ exports.loginUser = (req, res) => {
 
         // Create a new session and store user id
         req.session.userId = user._id;
-
-        res.json({ message: 'Login successful' })
+    const token = jwt.sign(
+      { id: userId, username: user.username, role: user.role },
+      process.env.JWT_SECRET,
+      {
+        expiresIn: `15m`,
+      }
+    );
+        res.json({ message: 'Login successful', token })
     })
 }
