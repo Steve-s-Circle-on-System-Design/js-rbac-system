@@ -15,4 +15,6 @@ export const checkPermission = (permission) => {
   };
 };
 
-export default rbacMiddleware
+// Export an object containing checkPermission (matches how it's imported)
+const rbacMiddleware = { checkPermission };
+export default rbacMiddleware;
