@@ -6,7 +6,6 @@ import jwt from 'jsonwebtoken';  // was missing in original – required for tok
 export const registerUser = async (req, res) => {
   const { username, password, role } = req.body;
   const hashedPassword = await bcrypt.hash(password, 8);
-  
   const user = new User({ username, password: hashedPassword, role });
 
   User.register(user, password, (err) => {

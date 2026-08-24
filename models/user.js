@@ -1,5 +1,4 @@
 import mongoose from "mongoose";
-import passportLocalMongoose from "passport-local-mongoose";
 
 const userSchema = new mongoose.Schema({
     username: String,
@@ -8,7 +7,7 @@ const userSchema = new mongoose.Schema({
 });
 
 // Plugin disabled due to ESM/CJS compatibility issue with passport-local-mongoose
-userSchema.plugin(passportLocalMongoose);
+// userSchema.plugin(passportLocalMongoose);
 
 const User = mongoose.model('User', userSchema);
 
