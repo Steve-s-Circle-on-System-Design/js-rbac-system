@@ -1,36 +1,65 @@
 import User from "../models/user.js";
-import Role from '../models/role.js';
-import bcrypt from 'bcryptjs';   // was missing in original – required for hashing
-import jwt from 'jsonwebtoken';  // was missing in original – required for token
+import bcrypt from "bcryptjs";
+import { accessToken, refreshToken } from "../utils/createJWT.js";
 
 export const registerUser = async (req, res) => {
-  const { username, password, role } = req.body;
-  const hashedPassword = await bcrypt.hash(password, 8);
-  const user = new User({ username, password: hashedPassword, role });
+  try {
+    const { username, password, role } = req.body;
 
-  User.register(user, password, (err) => {
-    if (err) {
-      console.log(err);
-      return res.status(500).json({ error: err.message });
+    const user = await User.findOne({username});
+
+    if(user){
+      return res.status(409).json({error:"User with this username already exist"})
     }
-    res.json({ message: 'User registered successfully' });
-  });
+
+    const hashedPassword = await bcrypt.hash(password, 8)
+
+    const newUser = new User({username, password:hashedPassword, role})
+    newUser.save();    
+
+
+    return res.status(201).json({
+      message: "User registered successfully",
+    });
+  } catch (err) {
+    console.error("Registration error:", err);
+
+    return res.status(500).json({
+      error: err.message,
+    });
+  }
 };
 
-export const loginUser = (req, res) => {
+export const loginUser = async (req, res) => {
   const { username, password } = req.body;
 
-  User.authenticate(username, password, (err, user) => {
-    if (err || !user) {
-      return res.status(401).json({ error: 'Invalid credentials' });
-    }
+  const user = await User.findOne({username});
 
-    req.session.userId = user._id;
-    const token = jwt.sign(
-      { id: user._id, username: user.username, role: user.role },
-      process.env.JWT_SECRET,
-      { expiresIn: '15m' }
-    );
-    res.json({ message: 'Login successful', token });
+  if(!user){
+    return res.status(401).json({error:"Invalid username or password"})
+  }
+
+  const comparePassword = bcrypt.compare(password, user.password);
+  
+  if(!comparePassword){
+    return res.status(401).json({error:"Invalid username or password provided"})
+  }
+
+  req.user = {id:user._id,role:user.role,username:user.username};
+
+  const aToken = accessToken(user);
+  const rToken = refreshToken(user);
+
+  res.cookie("token",rToken,{
+    withCredentials: true,
+    httpOnly: true,
+    sameSite: "Lax",
+    // secure: true,
+    maxAge:7*24*60*60*1000
+  })
+
+  return res.json({
+    message: "Login successful",
+    accessToken:aToken,
   });
 };
