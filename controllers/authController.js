@@ -1,6 +1,8 @@
 import User from "../models/user.js";
 import bcrypt from "bcryptjs";
 import { accessToken, refreshToken } from "../utils/createJWT.js";
+import { MissingUsernameError } from "passport-local-mongoose/dist/lib/errors.js";
+import {recordFailedLogins, resetLoginAttempts} from "../services/accountLockout.js"
 
 export const registerUser = async (req, res) => {
   try {
@@ -39,11 +41,31 @@ export const loginUser = async (req, res) => {
     return res.status(401).json({error:"Invalid username or password"})
   }
 
-  const comparePassword = bcrypt.compare(password, user.password);
+  if(user.security.lockedUntil && user.security.lockedUntil > new Date()){
+    return res.status(403).json({
+      error:"Invalid username or password"
+    });
+  }
+
+  if(user.security.lockedUntil && user.security.lockedUntil <= new Date()){
+    await resetLoginAttempts(user._id);
+  }
+
+  const comparePassword = await bcrypt.compare(password, user.password);
   
   if(!comparePassword){
-    return res.status(401).json({error:"Invalid username or password provided"})
+    const result = await recordFailedLogins(user._id);
+
+    if(result.locked){
+      //Trigger automated security alert emails to the user when an account lock occurs
+    }
+
+    return res.status(401).json({
+      error: "Invalid username or password"
+    });
   }
+
+  await resetLoginAttempts(user._id);
 
   req.user = {id:user._id,role:user.role,username:user.username};
 

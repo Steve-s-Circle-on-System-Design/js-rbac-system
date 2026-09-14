@@ -8,6 +8,12 @@ const userSchema = new mongoose.Schema({
         type: String,
         default: "staff"
     },
+    
+    security: {
+        failedAttempts: { type: Number, default: 0 },
+        // lastFailedAt: { type: Date, default: null },
+        lockedUntil: { type: Date, default: null }
+    }
 });
 
 // const passportPlugin =
