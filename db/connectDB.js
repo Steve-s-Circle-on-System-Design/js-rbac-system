@@ -1,6 +1,9 @@
+import dotenv from "dotenv"
 import mongoose from "mongoose";
 
-const atlasURI = "mongodb+srv://thankgodode535_db_user:DkrAQHwuCqzOJvXa@cluster0.qh0dssv.mongodb.net/?appName=Cluster0"
+dotenv.config()
+
+const atlasURI = process.env.MONGO_DB_URL
 
 // 2. Connect to the database using an async function
 async function connectDB() {
